@@ -19,9 +19,19 @@ def construct():
   # Parameters
   #-----------------------------------------------------------------------
 
-  adk_name = 'tsmc16'
-  adk_view = 'stdview'
   pwr_aware = True
+
+  if os.environ.get('TECH_LIB') == '45':
+    adk_name = 'freepdk-45nm'
+    adk_view = 'view-standard'
+  else:
+    adk_name = 'tsmc16'
+    adk_view = 'stdview'
+
+  flatten = 3
+  os_flatten = os.environ.get('FLATTEN')
+  if os_flatten:
+      flatten = os_flatten
 
   parameters = {
     'construct_path'      : __file__,
@@ -46,6 +56,10 @@ def construct():
     # Power Domains
     'PWR_AWARE'           : pwr_aware
 
+    'saif_instance'     : 'TileMemCoreTb/Tile_MemCore_inst',
+
+    'testbench_name'    : 'TileMemCoreTb',
+    'strip_path'        : 'TileMemCoreTb/Tile_MemCore_inst'
   }
 
   #-----------------------------------------------------------------------
@@ -58,6 +72,11 @@ def construct():
 
   g.set_adk( adk_name )
   adk = g.get_adk_step()
+
+  # RTL power estimation
+  rtl_power = False;
+  if os.environ.get('RTL_POWER') == 'True':
+      rtl_power = True;
 
   # Custom steps
 
@@ -74,6 +93,18 @@ def construct():
   if pwr_aware:
       power_domains = Step( this_dir + '/../common/power-domains' )
       pwr_aware_gls = Step( this_dir + '/../common/pwr-aware-gls' )
+
+  testbench            = Step( this_dir + '/testbench'                             )
+  vcs_sim              = Step( this_dir + '/../common/synopsys-vcs-sim'            )
+  if rtl_power:
+    rtl_sim              = vcs_sim.clone()
+    rtl_sim.set_name( 'rtl-sim' )
+    pt_power_rtl         = Step( this_dir + '/../common/synopsys-ptpx-rtl'         )
+  gl_sim               = vcs_sim.clone()
+  gl_sim.set_name( 'gl-sim' )
+  pt_power_gl          = Step( this_dir + '/../common/synopsys-ptpx-gl'            )
+  parse_power_gl       = Step( this_dir + '/parse-power-gl'                        )
+
   # Default steps
 
   info           = Step( 'info',                           default=True )
@@ -110,6 +141,7 @@ def construct():
   dc.extend_inputs( ['sram_tt.db'] )
   pt_signoff.extend_inputs( ['sram_tt.db'] )
   genlibdb.extend_inputs( ['sram_tt.db'] )
+  pt_power_gl.extend_inputs( ['sram_tt.db'] )
 
   # These steps need timing and lef info for srams
 
@@ -125,6 +157,11 @@ def construct():
   # Need SRAM spice file for LVS
 
   lvs.extend_inputs( ['sram.spi'] )
+
+  # Need SRAM verilog for sim
+  if rtl_power:
+      rtl_sim.extend_inputs( ['sram.v'] )
+  gl_sim.extend_inputs( ['sram.v'] )
 
   # Add extra input edges to innovus steps that need custom tweaks
 
@@ -185,43 +222,65 @@ def construct():
       g.add_step( power_domains            )
       g.add_step( pwr_aware_gls            )
 
+  g.add_step( testbench                )
+  if rtl_power:
+    g.add_step( rtl_sim                )
+    g.add_step( pt_power_rtl           )
+  g.add_step( gl_sim                   )
+  g.add_step( pt_power_gl              )
+  g.add_step( parse_power_gl           )
+
   #-----------------------------------------------------------------------
   # Graph -- Add edges
   #-----------------------------------------------------------------------
 
   # Connect by name
 
-  g.connect_by_name( adk,      dc             )
-  g.connect_by_name( adk,      iflow          )
-  g.connect_by_name( adk,      init           )
-  g.connect_by_name( adk,      power          )
-  g.connect_by_name( adk,      place          )
-  g.connect_by_name( adk,      cts            )
-  g.connect_by_name( adk,      postcts_hold   )
-  g.connect_by_name( adk,      route          )
-  g.connect_by_name( adk,      postroute      )
-  g.connect_by_name( adk,      postroute_hold )
-  g.connect_by_name( adk,      signoff        )
-  g.connect_by_name( adk,      gdsmerge       )
-  g.connect_by_name( adk,      drc            )
-  g.connect_by_name( adk,      lvs            )
+  g.connect_by_name( adk,      dc           )
+  g.connect_by_name( adk,      iflow        )
+  g.connect_by_name( adk,      init         )
+  g.connect_by_name( adk,      power        )
+  g.connect_by_name( adk,      place        )
+  g.connect_by_name( adk,      cts          )
+  g.connect_by_name( adk,      postcts_hold )
+  g.connect_by_name( adk,      route        )
+  g.connect_by_name( adk,      postroute    )
+  g.connect_by_name( adk,      signoff      )
+  g.connect_by_name( adk,      gdsmerge     )
+  g.connect_by_name( adk,      drc          )
+  g.connect_by_name( adk,      lvs          )
+  g.connect_by_name( adk,      pt_power_gl  )
 
-  g.connect_by_name( gen_sram,      dc             )
-  g.connect_by_name( gen_sram,      iflow          )
-  g.connect_by_name( gen_sram,      init           )
-  g.connect_by_name( gen_sram,      power          )
-  g.connect_by_name( gen_sram,      place          )
-  g.connect_by_name( gen_sram,      cts            )
-  g.connect_by_name( gen_sram,      postcts_hold   )
-  g.connect_by_name( gen_sram,      route          )
-  g.connect_by_name( gen_sram,      postroute      )
-  g.connect_by_name( gen_sram,      postroute_hold )
-  g.connect_by_name( gen_sram,      signoff        )
-  g.connect_by_name( gen_sram,      genlibdb       )
-  g.connect_by_name( gen_sram,      pt_signoff     )
-  g.connect_by_name( gen_sram,      gdsmerge       )
-  g.connect_by_name( gen_sram,      drc            )
-  g.connect_by_name( gen_sram,      lvs            )
+  if rtl_power:
+    rtl_sim.extend_inputs(['design.v'])
+    g.connect_by_name( adk,      rtl_sim      )
+    g.connect_by_name( adk,      pt_power_rtl )
+    # To generate namemap
+    g.connect_by_name( rtl_sim,     dc       ) # run.saif
+    g.connect_by_name( rtl,          rtl_sim      ) # design.v
+    g.connect_by_name( testbench,    rtl_sim      ) # testbench.sv
+    g.connect_by_name( gen_sram,    rtl_sim      ) # testbench.sv
+    g.connect_by_name( dc,       pt_power_rtl ) # design.namemap
+    g.connect_by_name( signoff,      pt_power_rtl ) # design.vcs.v, design.spef.gz, design.pt.sdc
+    g.connect_by_name( rtl_sim,      pt_power_rtl ) # run.saif
+
+  g.connect_by_name( gen_sram,      dc           )
+  g.connect_by_name( gen_sram,      iflow        )
+  g.connect_by_name( gen_sram,      init         )
+  g.connect_by_name( gen_sram,      power        )
+  g.connect_by_name( gen_sram,      place        )
+  g.connect_by_name( gen_sram,      cts          )
+  g.connect_by_name( gen_sram,      postcts_hold )
+  g.connect_by_name( gen_sram,      route        )
+  g.connect_by_name( gen_sram,      postroute    )
+  g.connect_by_name( gen_sram,      signoff      )
+  g.connect_by_name( gen_sram,      genlibdb     )
+  g.connect_by_name( gen_sram,      pt_signoff   )
+  g.connect_by_name( gen_sram,      gdsmerge     )
+  g.connect_by_name( gen_sram,      drc          )
+  g.connect_by_name( gen_sram,      lvs          )
+  g.connect_by_name( gen_sram,      gl_sim       )
+  g.connect_by_name( gen_sram,      pt_power_gl  )
 
   g.connect_by_name( rtl,         dc        )
   g.connect_by_name( constraints, dc        )
@@ -269,6 +328,15 @@ def construct():
 
   g.connect_by_name( adk,          pt_signoff   )
   g.connect_by_name( signoff,      pt_signoff   )
+
+  g.connect_by_name( signoff,      pt_power_gl  )
+  g.connect_by_name( gl_sim,       pt_power_gl  ) # run.saif
+
+  g.connect_by_name( adk,          gl_sim       )
+  g.connect_by_name( signoff,      gl_sim       ) # design.vcs.v, design.spef.gz, design.pt.sdc
+  g.connect_by_name( pt_signoff,   gl_sim       ) # design.sdf
+  g.connect_by_name( testbench,    gl_sim       ) # testbench.sv
+  g.connect_by_name( pt_power_gl,  parse_power_gl ) # power.hier
 
   g.connect_by_name( adk,      debugcalibre )
   g.connect_by_name( dc,       debugcalibre )
