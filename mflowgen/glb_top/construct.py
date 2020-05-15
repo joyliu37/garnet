@@ -25,7 +25,7 @@ def construct():
   parameters = {
     'construct_path' : __file__,
     'design_name'    : 'global_buffer',
-    'clock_period'   : 1.2,
+    'clock_period'   : 1.1,
     'adk'            : adk_name,
     'adk_view'       : adk_view,
     # Synthesis
@@ -243,6 +243,10 @@ def construct():
   # Since we are adding an additional input script to the generic Innovus
   # steps, we modify the order parameter for that node which determines
   # which scripts get run and when they get run.
+
+  # Change nthreads
+  dc.update_params( { 'nthreads': 4 } )
+  iflow.update_params( { 'nthreads': 8 } )
 
   order = init.get_param('order') # get the default script run order
   reporting_idx = order.index( 'reporting.tcl' ) # find reporting.tcl
