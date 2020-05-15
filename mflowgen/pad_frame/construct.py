@@ -280,12 +280,13 @@ def construct():
     {'order': [
       'main.tcl','quality-of-life.tcl',
       'stylus-compatibility-procs.tcl','floorplan.tcl','io-fillers.tcl',
-      'innovus-foundation-flow/custom-scripts/stream-out.tcl',
+#       'innovus-foundation-flow/custom-scripts/stream-out.tcl',
       'attach-results-to-outputs.tcl',
       'alignment-cells.tcl',
       'analog-bumps/route-phy-bumps.tcl', 
       'analog-bumps/bump-connect.tcl',
       'gen-bumps.tcl', 'check-bumps.tcl', 'route-bumps.tcl',
+      'innovus-foundation-flow/custom-scripts/stream-out.tcl',
     ]}
   )
 
