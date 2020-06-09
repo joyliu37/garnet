@@ -68,7 +68,8 @@ def construct():
   # RTL power estimation
   rtl_power = False;
   if os.environ.get('RTL_POWER') == 'True':
-      rtl_power = True;
+      pwr_aware = True
+      rtl_power = False
 
   # Custom steps
 
@@ -154,8 +155,7 @@ def construct():
       pwr_aware_gls.extend_inputs(['design.vcs.pg.v']) 
 
       gl_sim.extend_inputs( ["design.vcs.pg.v"] )
-
-      pt_signoff = Step( this_dir + '/synopsys-pt-timing-signoff' )
+      pt_signoff = Step( this_dir + '/../common/synopsys-pt-timing-signoff' )
   
   #-----------------------------------------------------------------------
   # Graph -- Add nodes

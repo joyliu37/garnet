@@ -24,6 +24,7 @@ def construct():
   if os.environ.get('TECH_LIB') == '45':
     adk_name = 'freepdk-45nm'
     adk_view = 'view-standard'
+    pwr_aware = False
   else:
     adk_name = 'tsmc16'
     adk_view = 'stdview'
@@ -54,7 +55,7 @@ def construct():
     # RTL Generation
     'interconnect_only'   : True,
     # Power Domains
-    'PWR_AWARE'           : pwr_aware
+    'PWR_AWARE'           : pwr_aware,
 
     'saif_instance'     : 'TileMemCoreTb/Tile_MemCore_inst',
 
@@ -76,7 +77,8 @@ def construct():
   # RTL power estimation
   rtl_power = False;
   if os.environ.get('RTL_POWER') == 'True':
-      rtl_power = True;
+      rtl_power = True
+      pwr_aware = False
 
   # Custom steps
 
@@ -100,6 +102,7 @@ def construct():
     rtl_sim              = vcs_sim.clone()
     rtl_sim.set_name( 'rtl-sim' )
     pt_power_rtl         = Step( this_dir + '/../common/synopsys-ptpx-rtl'         )
+    rtl_sim.extend_inputs( testbench.all_outputs() )
   gl_sim               = vcs_sim.clone()
   gl_sim.set_name( 'gl-sim' )
   pt_power_gl          = Step( this_dir + '/../common/synopsys-ptpx-gl'            )
@@ -186,6 +189,10 @@ def construct():
       postroute_hold.extend_inputs(['conn-aon-cells-vdd.tcl'] )
       signoff.extend_inputs(['check-clamp-logic-structure.tcl', 'conn-aon-cells-vdd.tcl', 'pd-generate-lvs-netlist.tcl'] )
       pwr_aware_gls.extend_inputs(['design.vcs.pg.v', 'sram_pwr.v'])
+
+      gl_sim.extend_inputs( ["design.vcs.pg.v", "sram_pwr.v"] )
+      pt_signoff = Step( this_dir + '/../common/synopsys-pt-timing-signoff' )
+ 
   #-----------------------------------------------------------------------
   # Graph -- Add nodes
   #-----------------------------------------------------------------------
@@ -245,6 +252,7 @@ def construct():
   g.connect_by_name( adk,      postcts_hold )
   g.connect_by_name( adk,      route        )
   g.connect_by_name( adk,      postroute    )
+  g.connect_by_name( adk,      postroute_hold)
   g.connect_by_name( adk,      signoff      )
   g.connect_by_name( adk,      gdsmerge     )
   g.connect_by_name( adk,      drc          )

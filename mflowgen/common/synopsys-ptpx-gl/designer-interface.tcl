@@ -28,6 +28,9 @@ set ptpx_extra_link_libraries     [join "
 #-------------------------------------------------------------------------
 
 set ptpx_gl_netlist         inputs/design.vcs.v
+if {$::env(PWR_AWARE) == "True"} {
+    set ptpx_gl_netlist     inputs/design.vcs.pg.v
+}
 set ptpx_sdc                inputs/design.pt.sdc
 set ptpx_spef               inputs/design.spef.gz
 set ptpx_saif               inputs/run.saif

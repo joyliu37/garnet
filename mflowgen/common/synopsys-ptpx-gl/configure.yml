@@ -16,6 +16,7 @@ name: synopsys-ptpx-gl
 inputs:
   - adk
   - design.vcs.v
+  - design.vcs.pg.v
   - design.pt.sdc
   - design.spef.gz
   - run.saif
@@ -39,5 +40,4 @@ commands:
 parameters:
   design_name: undefined
   strip_path: th/dut
-
-
+  PWR_AWARE: True

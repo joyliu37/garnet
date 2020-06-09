@@ -161,6 +161,8 @@ module TileMemCoreTb;
     wire [0:0]  stall = test_vectors[test_vec_addr][`STALL];
     wire [0:0]  stall_out;
     wire [15:0] tile_id = test_vectors[test_vec_addr][`TILE_ID];
+    supply1 VDD;
+    supply0 VSS;
 
     Tile_MemCore Tile_MemCore_inst (
         .SB_T0_EAST_SB_IN_B16(SB_T0_EAST_SB_IN_B16),
@@ -263,7 +265,9 @@ module TileMemCoreTb;
         .reset_out(reset_out),
         .stall(stall),
         .stall_out(stall_out),
-        .tile_id(tile_id)
+        .tile_id(tile_id),
+        .VDD(VDD),
+        .VSS(VSS)
     );
  
     always #(`CLK_PERIOD/2) clk =~clk;

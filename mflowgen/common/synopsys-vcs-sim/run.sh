@@ -18,9 +18,9 @@ fi
 
 # ADK for GLS
 if [ -d "inputs/adk" ]; then
-  ARGS="$ARGS inputs/adk/stdcells.v"
+  ARGS="$ARGS inputs/adk/stdcells.v inputs/adk/stdcells-lvt.v inputs/adk/stdcells-ulvt.v"
   if [ $PWR_AWARE == "True" ]; then
-    ARGS="$ARGS inputs/adk/stdcells-pm-pwr.v inputs/adk/stdcells-pwr.v"
+    ARGS="$ARGS inputs/adk/stdcells-pm-pwr.v inputs/adk/stdcells-pwr.v inputs/adk/stdcells-lvt-pwr.v inputs/adk/stdcells-ulvt-pwr.v"
   fi
 fi
 
@@ -32,6 +32,13 @@ for f in inputs/*.v; do
   [ -e "$f" ] || continue
   ARGS="$ARGS $f"
 done
+
+# SRAM power hack for now (files need to read in a specific order"
+if [ $PWR_AWARE == "True" ]; then
+  if [[ -f "inputs/sram_pwr.v" ]]; then
+    ARGS="$ARGS inputs/sram_pwr.v"
+  fi
+fi
 
 for f in inputs/*.sv; do
   [ -e "$f" ] || continue

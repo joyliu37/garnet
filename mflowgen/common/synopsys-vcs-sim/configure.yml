@@ -33,6 +33,7 @@ inputs:
   - design.sdf
   - design.args
   - test_vectors.txt
+  - test_outputs.txt
 
 # By default, this node will output a waveform dump. To disable this, set
 # the waveform parameter to False.
