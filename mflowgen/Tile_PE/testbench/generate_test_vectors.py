@@ -139,7 +139,6 @@ def main():
     finish_time = math.floor(cycles*clk_period+clk_period/2)
     defines.write(f"`define CONFIG_TIME {config_time}\n")
     defines.write(f"`define CLK_PERIOD {clk_period}\n")
-    defines.write(f"`define SAIF_CLK {int(clk_period)}e-9\n")
     defines.write(f"`define ASSIGNMENT_DELAY {assignment_delay}\n")
     defines.write(f"`define RUN_TIME {finish_time-config_time}\n")
     defines.write(f"`define NUM_TEST_VECTORS {cycles}\n")

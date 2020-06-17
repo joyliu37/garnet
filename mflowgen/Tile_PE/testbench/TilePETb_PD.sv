@@ -436,7 +436,7 @@ module TilePETb;
       $toggle_start();
       #(`RUN_TIME);
       $toggle_stop();
-      $toggle_report("outputs/run.saif", `SAIF_CLK, TilePETb);
+      $toggle_report("outputs/run.saif", 1e-9, TilePETb);
       $finish(2);
     end
 
