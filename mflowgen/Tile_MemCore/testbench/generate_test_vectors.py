@@ -17,6 +17,27 @@ def main():
     f = open("test_vectors.txt", "w")
     raw = open("raw_input.csv", "r")
 
+    # first flip the inputs so we can use the same defines
+    flipped = open("flipped.csv", "w")
+    while True:
+        line = raw.readline().strip()
+        if not line:
+            break
+
+        str_nums = line.split(",")
+        nums = [thing for thing in str_nums]
+
+        for i in range(20):
+            temp = nums[2*i];
+            nums[2*i] = nums[2*i+1]
+            nums[2*i+1] = temp
+
+        flipped.write(",".join(nums)+"\n")
+
+    flipped.close();
+    raw.close();
+    raw = open("flipped.csv", "r")
+
     fields = raw.readline().split(",")
     while True:
         line = raw.readline().strip()
@@ -114,10 +135,13 @@ def main():
     defines = open('defines.v', 'w')
     clk_period = float(os.getenv('clock_period'))
     assignment_delay = 0.5
-    config_time = math.ceil(config_cycles*clk_period)
-    finish_time = math.ceil(cycles*clk_period+clk_period/2)
+#    config_time = math.ceil(config_cycles*clk_period)
+#    finish_time = math.floor(cycles*clk_period+clk_period/2)
+    config_time = math.ceil(21294*clk_period)
+    finish_time = math.floor((21294+4300)*clk_period+clk_period/2)
     defines.write(f"`define CONFIG_TIME {config_time}\n")
     defines.write(f"`define CLK_PERIOD {clk_period}\n")
+    defines.write(f"`define SAIF_CLK {int(clk_period)}e-9\n")
     defines.write(f"`define ASSIGNMENT_DELAY {assignment_delay}\n")
     defines.write(f"`define RUN_TIME {finish_time-config_time}\n")
     defines.write(f"`define NUM_TEST_VECTORS {cycles}\n")

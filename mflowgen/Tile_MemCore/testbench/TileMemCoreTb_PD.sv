@@ -436,7 +436,7 @@ module TileMemCoreTb;
       $toggle_start();
       #(`RUN_TIME);
       $toggle_stop();
-      $toggle_report("outputs/run.saif", 10e-9, TileMemCoreTb);
+      $toggle_report("outputs/run.saif", `SAIF_CLK, TileMemCoreTb);
       $finish(2);
     end
     initial begin
