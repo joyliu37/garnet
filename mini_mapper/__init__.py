@@ -108,13 +108,13 @@ __PORT_RENAME = {
 
 def is_conn_out(raw_name):
     port_names = ["out", "outb", "valid", "rdata", "res", "res_p", "io2f_16",
-                  "alu_res", "tofab", "data_out_0"]
+                  "alu_res", "tofab", "data_out"]
     if isinstance(raw_name, six.text_type):
         raw_name = raw_name.split(".")
     if len(raw_name) > 1:
         raw_name = raw_name[1:]
     for name in port_names:
-        if name == raw_name[-1]:
+        if name in raw_name[-1]:
             return True
     return False
 
@@ -122,13 +122,13 @@ def is_conn_out(raw_name):
 def is_conn_in(raw_name):
     port_names = ["in", "wen", "cg_en", "ren", "wdata", "in0", "in1", "in",
                   "inb", "data0", "data1", "f2io_16", "clk_en", "fromfab",
-                  "data_in_0", "wen_in_0", "ren_in_0"]
+                  "data_in_", "wen_in_", "ren_in_"]
     if isinstance(raw_name, six.text_type):
         raw_name = raw_name.split(".")
     if len(raw_name) > 1:
         raw_name = raw_name[1:]
     for name in port_names:
-        if name == raw_name[-1]:
+        if name in raw_name[-1]:
             return True
     return False
 
@@ -513,6 +513,8 @@ def change_name_to_id(instances):
                 blk_type = "I"
             elif instance_type == "cgralib.Mem":
                 blk_type = "m"
+            elif instance_type == "cgralib.ub":
+                blk_type = "m"
             elif instance_type == "coreir.const":
                 blk_type = "c"
             elif instance_type == "coreir.reg":
@@ -527,6 +529,7 @@ def change_name_to_id(instances):
 
 def read_netlist_json(netlist_filename):
     assert (os.path.isfile(netlist_filename))
+    print (netlist_filename)
     with open(netlist_filename) as f:
         raw_data = json.load(f)
     namespace = raw_data["namespaces"]
@@ -557,6 +560,16 @@ def get_ub_params(instance):
         else:
             val = int(val)
             result[name] = val
+    return json.dumps(result)
+
+def get_lake_params(instance):
+    config = instance["modargs"]["config"][1]
+    result = {}
+    for name, val in config.items():
+        result[name] = val
+
+    #not sure what is this field
+    result["content"] = [(512, 0)];
     return json.dumps(result)
 
 
@@ -590,6 +603,9 @@ def get_tile_op(instance, blk_id, changed_pe, rename_op=True):
                 op = "mem_ub_" + get_ub_params(instance)
         else:
             op = "mem"
+        print_order = 3
+    elif pe_type == "cgralib.ub":
+        op = "mem_lake_" + get_lake_params(instance)
         print_order = 3
     elif pe_type == "cgralib.IO":
         return None, None  # don't care yet
@@ -1009,8 +1025,9 @@ def insert_valid_delay(id_to_name, instance_to_instr, netlist, bus):
 
 def map_app(pre_map):
     with tempfile.NamedTemporaryFile() as temp_file:
-        src_file = temp_file.name
-        subprocess.check_call(["mapper", pre_map, src_file])
+        #src_file = temp_file.name
+        src_file = pre_map
+        #subprocess.check_call(["mapper", pre_map, src_file])
         netlist, folded_blocks, id_to_name, changed_pe = \
             parse_and_pack_netlist(src_file, fold_reg=True)
         rename_id_changed(id_to_name, changed_pe)
@@ -1075,6 +1092,11 @@ def map_app(pre_map):
                                            instr)
                     instr["chain_en"] = 1
                     instr["chain_idx"] = idx
+            elif mem_mode == "lake":
+                instr["is_ub"] = True
+                instr["mode"] = MemoryMode.DB
+                params = json.loads("_".join(args[2:]))
+                instr.update(params)
         else:
             ra_mode, ra_value = get_mode(pins[0])
             rb_mode, rb_value = get_mode(pins[1])
