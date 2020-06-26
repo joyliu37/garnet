@@ -100,5 +100,8 @@ report_power -nosplit \
 report_power -nosplit -hierarchy \
   > reports/$ptpx_design_name.power.hier.rpt
 
+report_power -nosplit -hierarchy -leaf -levels 10 \
+  > reports/$ptpx_design_name.power.cell.rpt
+
 exit
 

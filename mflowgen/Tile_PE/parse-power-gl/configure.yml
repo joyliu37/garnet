@@ -10,9 +10,11 @@ name: parse-power
 
 inputs:
   - power.hier 
+  - power.cell
 
 outputs:
   - overall.summary
+  - cell.summary
 
 #-------------------------------------------------------------------------
 # Commands
@@ -20,6 +22,7 @@ outputs:
 
 commands:
   - cp inputs/power.hier outputs/overall.summary
+  - cp inputs/power.cell outputs/cell.summary
 
 #-------------------------------------------------------------------------
 # Parameters
