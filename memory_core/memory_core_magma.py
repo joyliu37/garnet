@@ -587,6 +587,7 @@ class MemCore(ConfigurableCore):
     def get_reg_index(self, register_name):
         conf_names = list(self.registers.keys())
         conf_names.sort()
+        print (register_name)
         idx = conf_names.index(register_name)
         return idx
 
@@ -601,6 +602,13 @@ class MemCore(ConfigurableCore):
                 feat_addr = addr // 256 + 1
                 addr = (addr % 256) >> 2
                 configs.append((addr, feat_addr, data))
+        #for the new lake tile auto-mapping
+        if "is_lake" in instr and instr["is_lake"]:
+            for k, v in instr.items():
+                if "strg_ub" in k:
+                    print (k, v)
+                    assert len(v) == 1
+                    configs += [(self.get_reg_index(k), int(v[0]))]
 
         # unified buffer buffer stuff
         if "is_ub" in instr and instr["is_ub"]:

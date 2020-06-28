@@ -1,1 +1,0 @@
- python garnet.py --width 16 --height 16 --no-pd --interconnect-only --input-app /nobackup/joeyliu/aha/jmapper/output_new.json --input-file /nobackup/joeyliu/aha/Halide-to-Hardware/apps/hardware_benchmarks/tests/conv_3_3/input.png --gold-file /nobackup/joeyliu/aha/Halide-to-Hardware/apps/hardware_benchmarks/tests/conv_3_3/golden/golden_output.png --output-file ./tmp

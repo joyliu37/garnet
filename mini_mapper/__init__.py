@@ -1093,7 +1093,7 @@ def map_app(pre_map):
                     instr["chain_en"] = 1
                     instr["chain_idx"] = idx
             elif mem_mode == "lake":
-                instr["is_ub"] = True
+                instr["is_lake"] = True
                 instr["mode"] = MemoryMode.DB
                 params = json.loads("_".join(args[2:]))
                 instr.update(params)
